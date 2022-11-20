@@ -23,6 +23,7 @@ canvas_result = st_canvas(
     stroke_color="rgba(0, 0, 0, 1)",
 )
 
+
 def predict_img(img):
     model = pickle.load(open('model.pkl', 'rb'))
 
@@ -30,25 +31,18 @@ def predict_img(img):
     prediction = model.predict(img)
     return prediction
 
-# add button that when clicked calls predict_img on numpy array version of canvas content
+
 if st.button("Predict"):
-    # convert canvas content to greyscale
-    img = Image.fromarray(canvas_result.image_data.astype('uint8')).convert('L')
-    # preprocess image
-    img = img.resize((28, 28))
-    img = np.array(img)
-    img = img.reshape(1, 28, 28, 1)
-    img = img.astype('float32')
-    img /= 255
+    img = (
+        Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGB')
+        .convert('L')
+        .resize((28, 28))
+    )
+    img = np.asarray(img).reshape(1, 28, 28).astype('uint8') / 255
 
     # predict digit
     prediction = predict_img(img)
-    print(prediction)
-    print(img)
-
-    # display second greatest probability in prediction besides argmax
-    st.write(f"Prediction: {prediction.argmax()}")
-    st.write(f"Probability: {round(np.max(prediction)*100, 3)}%")
 
 
-
+    st.write("The digit is: ", prediction.argmax())
+    st.write("The probability is: ", prediction.max())
