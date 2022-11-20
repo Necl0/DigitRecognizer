@@ -24,38 +24,19 @@ canvas_result = st_canvas(
     stroke_color="rgba(0, 0, 0, 1)",
 )
 
-
-def predict_img(img):
-    model = pickle.load(open('model.pkl', 'rb'))
-
-    # predict digit
-    prediction = model.predict(img)
-    return prediction
-
-
 if st.button("Predict"):
+    model = pickle.load(open('model.pkl', 'rb'))
 
     # convert canvas content to png
     img = Image.fromarray(np.uint8(canvas_result.image_data))
+
+
     img.save('temp.png')
 
-    # read image
-    img = Image.open('temp.png')
-
     # convert image to numpy array
-    img = np.array(img)
+    img = 1 - (np.asarray(Image.open("./temp.png").convert("L").resize((28, 28))) / 255)
 
-    # resize image to 28x28
-    img = cv2.resize(img, (14, 14))
-
-    # reshape image
-    img = img.reshape(1, 28, 28, 1)
-
-    # predict digit
-    prediction = predict_img(img)
-
-
+    prediction = model.predict(img[None, :, :]).argmax()
+    print(prediction)
     # display result
-    st.write("Prediction: ", prediction.argmax())
-
-    st.write("The probability is: ", prediction.max())
+    st.write("Prediction: ", prediction)
