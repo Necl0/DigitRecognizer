@@ -32,16 +32,23 @@ def predict_img(img):
 
 # add button that when clicked calls predict_img on numpy array version of canvas content
 if st.button("Predict"):
-    img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGB')
-    img = img.convert('L')
+    # convert canvas content to greyscale
+    img = Image.fromarray(canvas_result.image_data.astype('uint8')).convert('L')
     # preprocess image
     img = img.resize((28, 28))
     img = np.array(img)
     img = img.reshape(1, 28, 28, 1)
     img = img.astype('float32')
     img /= 255
+
     # predict digit
     prediction = predict_img(img)
     print(prediction)
-    st.write("The digit is: ", np.argmax(prediction))
+    print(img)
+
+    # display second greatest probability in prediction besides argmax
+    st.write(f"Prediction: {prediction.argmax()}")
+    st.write(f"Probability: {round(np.max(prediction)*100, 3)}%")
+
+
 
