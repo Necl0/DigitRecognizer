@@ -3,6 +3,7 @@ import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import numpy as np
 import pickle
+import cv2
 
 # title of the app
 st.title("Digit Recognizer")
@@ -33,16 +34,28 @@ def predict_img(img):
 
 
 if st.button("Predict"):
-    img = (
-        Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGB')
-        .convert('L')
-        .resize((28, 28))
-    )
-    img = np.asarray(img).reshape(1, 28, 28).astype('uint8') / 255
+
+    # convert canvas content to png
+    img = Image.fromarray(np.uint8(canvas_result.image_data))
+    img.save('temp.png')
+
+    # read image
+    img = Image.open('temp.png')
+
+    # convert image to numpy array
+    img = np.array(img)
+
+    # resize image to 28x28
+    img = cv2.resize(img, (14, 14))
+
+    # reshape image
+    img = img.reshape(1, 28, 28, 1)
 
     # predict digit
     prediction = predict_img(img)
 
 
-    st.write("The digit is: ", prediction.argmax())
+    # display result
+    st.write("Prediction: ", prediction.argmax())
+
     st.write("The probability is: ", prediction.max())
