@@ -24,26 +24,32 @@ canvas_result = st_canvas(
     key="canvas",
     stroke_color="rgba(0, 0, 0, 1)",
 )
+
+st.write(random.randint(1, 10))
+
 def gen_problem():
     kind = random.choice(['add','sub','mul','div'])
     while True:
         a,b = [random.randrange(-99,99) for _ in range(2)]
         match kind:
             case 'add':
-                if a+b in range(10):
-                    return f"{a} + {b} = {a+b}"
+                if a+b in range(1, 10):
+                    return (f"{a} + {b}"), (f"{a+b}")
             case 'sub':
-                if a-b in range(10):
-                    return f"{a} - {b} = {a-b}"
+                if a-b in range(1, 10):
+                    return (f"{a} - {b}"), (f"{a-b}")
             case 'div':
-                if a//b in range(10):
-                    return f"{a} / {b} = {a//b}"
+                if a//b in range(1, 10):
+                    return (f"{a} / {b}"), (f"{a//b}")
             case 'mul':
-                if a*b in range(10):
-                    return f"{a} * {b} = {a*b}"
+                if a*b in range(1, 10):
+                    return (f"{a} * {b}"), (f"{a*b}")
 
 st.write("Equation: ")
-st.write([gen_problem() for _ in range(1)])
+
+eq, ans = gen_problem()
+
+st.write(eq)
 
 
 if st.button("Predict"):
@@ -60,5 +66,9 @@ if st.button("Predict"):
 
     prediction = model.predict(img[None, :, :]).argmax()
     print(prediction)
+
     # display result
-    st.write("Prediction: ", prediction)
+    if prediction == ans:
+        st.write("Correct!")
+    else:
+        st.write("Incorrect!")
