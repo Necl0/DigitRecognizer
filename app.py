@@ -8,29 +8,10 @@ import random
 # title of the app
 st.title("Digit Recognizer")
 
-# Specify canvas parameters in application
-drawing_mode = "freedraw"
-stroke_width = 3
-realtime_update = True
-
-# Create a canvas component
-canvas_result = st_canvas(
-    stroke_width=stroke_width,
-    update_streamlit=realtime_update,
-    height=100,
-    width=100,
-    background_color= "White",
-    drawing_mode=drawing_mode,
-    key="canvas",
-    stroke_color="rgba(0, 0, 0, 1)",
-)
-
-st.write(random.randint(1, 10))
-
 def gen_problem():
     kind = random.choice(['add','sub','mul','div'])
     while True:
-        a,b = [random.randrange(-99,99) for _ in range(2)]
+        a,b = [random.randrange(1,99) for _ in range(2)]
         match kind:
             case 'add':
                 if a+b in range(1, 10):
@@ -44,31 +25,52 @@ def gen_problem():
             case 'mul':
                 if a*b in range(1, 10):
                     return (f"{a} * {b}"), (f"{a*b}")
+def printEquations():
+    st.write("Equation: ")
 
-st.write("Equation: ")
+    eq, ans = gen_problem()
 
-eq, ans = gen_problem()
+    st.write(eq)
+    is_done = True
 
-st.write(eq)
+# Specify canvas parameters in application
+while is_done == True:
+    drawing_mode = "freedraw"
+    stroke_width = 3
+    realtime_update = True
+
+    # Create a canvas component
+    canvas_result = st_canvas(
+        stroke_width=stroke_width,
+        update_streamlit=realtime_update,
+        height=100,
+        width=100,
+        background_color= "White",
+        drawing_mode=drawing_mode,
+        key="canvas",
+        stroke_color="rgba(0, 0, 0, 1)",
+    )
+
+    if canvas_result.image_data is not None:
+        if st.button("Predict"):
+            model = pickle.load(open('model.pkl', 'rb'))
+
+            # convert canvas content to png
+            img = Image.fromarray(np.uint8(canvas_result.image_data))
 
 
-if st.button("Predict"):
-    model = pickle.load(open('model.pkl', 'rb'))
+            img.save('temp.png')
 
-    # convert canvas content to png
-    img = Image.fromarray(np.uint8(canvas_result.image_data))
+            # convert image to numpy array
+            img = 1 - (np.asarray(Image.open("./temp.png").convert("L").resize((28, 28))) / 255)
 
+            prediction = model.predict(img[None, :, :]).argmax()
+            print(prediction)
 
-    img.save('temp.png')
-
-    # convert image to numpy array
-    img = 1 - (np.asarray(Image.open("./temp.png").convert("L").resize((28, 28))) / 255)
-
-    prediction = model.predict(img[None, :, :]).argmax()
-    print(prediction)
-
-    # display result
-    if prediction == ans:
-        st.write("Correct!")
-    else:
-        st.write("Incorrect!")
+            # display result
+            if prediction == ans:
+                st.write("Correct!")
+            else:
+                st.write("Incorrect!")
+            
+            st.stop()
